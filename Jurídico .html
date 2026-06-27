@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NegoFlow – Demo 3: Asistente Jurídico Virtual</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #09090f;
+    --surface: #10101a;
+    --surface2: #16162a;
+    --border: #1e1e35;
+    --gold: #f59e0b;
+    --gold-dim: #1a1508;
+    --gold-border: #2a2010;
+    --blue: #818cf8;
+    --blue-dim: #0f1030;
+    --green: #34d399;
+    --amber: #fbbf24;
+    --red: #f87171;
+    --text: #e9edef;
+    --muted: #64748b;
+    --wa-in: #1a1a2e;
+    --wa-out: #1a2a10;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 20px 16px 48px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 20px;
+    max-width: 360px;
+    width: 100%;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--gold-dim);
+    border: 1px solid var(--gold-border);
+    color: var(--gold);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+  }
+
+  .pulse {
+    width: 6px; height: 6px;
+    background: var(--gold);
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  h1 { font-size: 22px; font-weight: 700; line-height: 1.25; margin-bottom: 6px; }
+  h1 span { color: var(--gold); }
+  .subtitle { color: var(--muted); font-size: 12px; line-height: 1.6; }
+
+  .features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+    max-width: 360px;
+    margin-bottom: 20px;
+  }
+
+  .feat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--muted);
+    padding: 4px 10px;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+    max-width: 360px;
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .tab {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    color: var(--muted);
+    font-family: 'Inter', sans-serif;
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all .2s;
+    white-space: nowrap;
+  }
+
+  .tab.active {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: #0a0a0a;
+  }
+
+  .phone {
+    width: 320px;
+    border-radius: 32px;
+    overflow: hidden;
+    border: 1.5px solid var(--border);
+    background: #0b0b18;
+    box-shadow: 0 32px 80px rgba(0,0,0,.8);
+  }
+
+  .wa-header {
+    background: #16162a;
+    padding: 12px 14px 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f59e0b, #b45309);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; flex-shrink: 0;
+  }
+
+  .wa-name { color: #e9edef; font-size: 13.5px; font-weight: 700; }
+  .wa-sub { color: var(--gold); font-size: 10.5px; }
+
+  .chat-body {
+    background: #0b0b18;
+    padding: 10px 8px;
+    min-height: 430px;
+    max-height: 430px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    overflow-y: auto;
+  }
+
+  .date-pill {
+    align-self: center;
+    background: #16162a;
+    color: #8696a0;
+    font-size: 10px;
+    padding: 3px 10px;
+    border-radius: 8px;
+    margin: 4px 0;
+  }
+
+  .msg {
+    max-width: 82%;
+    padding: 7px 10px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.45;
+    position: relative;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity .3s ease, transform .3s ease;
+  }
+
+  .msg.visible { opacity: 1; transform: translateY(0); }
+  .msg.in { background: var(--wa-in); align-self: flex-start; border-top-left-radius: 0; color: #e9edef; }
+  .msg.out { background: var(--wa-out); align-self: flex-end; border-top-right-radius: 0; color: #e9edef; }
+
+  .msg .time {
+    position: absolute; bottom: 4px; right: 8px;
+    font-size: 9.5px; color: #8696a0;
+  }
+  .msg.out .time { color: #a8d5c8; }
+
+  .bot-label {
+    font-size: 8.5px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 3px;
+  }
+
+  /* Area tag inside chat */
+  .area-tag {
+    display: inline-block;
+    border-radius: 6px;
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 3px 8px;
+    margin: 4px 2px 4px 0;
+  }
+  .area-tag.familiar { background: #1a0a2e; color: #c084fc; border: 1px solid #3b1a5e; }
+  .area-tag.penal    { background: #1a0808; color: #f87171; border: 1px solid #5e1a1a; }
+  .area-tag.civil    { background: #0a1a2e; color: #60a5fa; border: 1px solid #1a3a5e; }
+  .area-tag.laboral  { background: #0a1a10; color: #34d399; border: 1px solid #1a3a28; }
+
+  .typing {
+    align-self: flex-start;
+    background: var(--wa-in);
+    border-radius: 8px;
+    border-top-left-radius: 0;
+    padding: 10px 14px;
+    display: none;
+    gap: 4px;
+    align-items: center;
+  }
+  .typing.show { display: flex; }
+
+  .dot {
+    width: 6px; height: 6px;
+    background: #8696a0;
+    border-radius: 50%;
+    animation: bounce .9s infinite;
+  }
+  .dot:nth-child(2) { animation-delay: .15s; }
+  .dot:nth-child(3) { animation-delay: .3s; }
+
+  @keyframes bounce {
+    0%,60%,100% { transform: translateY(0); }
+    30% { transform: translateY(-4px); }
+  }
+
+  .sys-panel {
+    width: 320px;
+    margin-top: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .sys-panel-header {
+    background: var(--surface2);
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sys-panel-title {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .sys-log {
+    padding: 10px 14px;
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+  }
+
+  .log-entry {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: opacity .3s, transform .3s;
+    line-height: 1.5;
+  }
+
+  .log-entry.visible { opacity: 1; transform: translateX(0); }
+  .log-text { color: var(--muted); }
+  .log-text.ok { color: var(--green); }
+  .log-text.info { color: var(--blue); }
+  .log-text.warn { color: var(--amber); }
+  .log-text.gold { color: var(--gold); }
+
+  .caps {
+    max-width: 320px;
+    width: 100%;
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .cap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .cap-icon { font-size: 16px; flex-shrink: 0; }
+  .cap-text { font-size: 11px; color: var(--muted); line-height: 1.4; }
+  .cap-text b { display: block; color: var(--text); font-size: 11.5px; margin-bottom: 2px; }
+
+  /* Legal areas row */
+  .areas-row {
+    max-width: 320px;
+    width: 100%;
+    margin-top: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px 14px;
+  }
+
+  .areas-title {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+
+  .areas-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .area-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .area-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .footer {
+    margin-top: 24px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.7;
+    max-width: 300px;
+  }
+  .footer strong { color: var(--text); }
+
+  .restart-btn {
+    margin-top: 14px;
+    background: transparent;
+    border: 1.5px solid var(--border);
+    color: var(--muted);
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 8px 22px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all .2s;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .restart-btn:hover { border-color: var(--gold); color: var(--gold); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="badge"><div class="pulse"></div> Demo 3 en vivo</div>
+  <h1>Asistente Jurídico<br><span>Virtual 24/7</span></h1>
+  <p class="subtitle">El despacho no pierde clientes que escriben fuera de horario. El bot los atiende, califica y agenda solo.</p>
+</div>
+
+<div class="features">
+  <div class="feat">⚖️ Detecta área legal</div>
+  <div class="feat">📋 Recopila el caso</div>
+  <div class="feat">📅 Agenda con el abogado</div>
+  <div class="feat">🆘 Escala urgencias</div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="loadScene('recopilar', this)">📋 Caso</button>
+  <button class="tab" onclick="loadScene('clasificar', this)">⚖️ Área legal</button>
+  <button class="tab" onclick="loadScene('agendar', this)">📅 Agendar</button>
+  <button class="tab" onclick="loadScene('recordatorio', this)">🔔 Recordatorio</button>
+  <button class="tab" onclick="loadScene('urgente', this)">🆘 Urgente</button>
+</div>
+
+<div class="phone">
+  <div class="wa-header">
+    <div class="avatar">⚖️</div>
+    <div>
+      <div class="wa-name">Despacho Jurídico</div>
+      <div class="wa-sub">● Asistente Virtual activo</div>
+    </div>
+  </div>
+  <div class="chat-body" id="chat">
+    <div class="date-pill">Hoy</div>
+    <div class="typing" id="typing">
+      <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    </div>
+  </div>
+</div>
+
+<div class="sys-panel">
+  <div class="sys-panel-header">
+    <span>⚙️</span>
+    <span class="sys-panel-title">Lo que hace el sistema por dentro</span>
+  </div>
+  <div class="sys-log" id="syslog"></div>
+</div>
+
+<div class="areas-row">
+  <div class="areas-title">⚖️ Áreas legales que detecta automáticamente</div>
+  <div class="areas-grid">
+    <div class="area-item"><div class="area-dot" style="background:#c084fc"></div>Familiar</div>
+    <div class="area-item"><div class="area-dot" style="background:#f87171"></div>Penal</div>
+    <div class="area-item"><div class="area-dot" style="background:#60a5fa"></div>Civil</div>
+    <div class="area-item"><div class="area-dot" style="background:#34d399"></div>Laboral</div>
+    <div class="area-item"><div class="area-dot" style="background:#f59e0b"></div>Mercantil</div>
+    <div class="area-item"><div class="area-dot" style="background:#e879f9"></div>Administrativo</div>
+  </div>
+</div>
+
+<div class="caps">
+  <div class="cap"><div class="cap-icon">📋</div><div class="cap-text"><b>Recopila el caso</b>Pregunta los datos clave antes de la consulta</div></div>
+  <div class="cap"><div class="cap-icon">⚖️</div><div class="cap-text"><b>Detecta el área</b>Dirige al cliente con el abogado correcto</div></div>
+  <div class="cap"><div class="cap-icon">📅</div><div class="cap-text"><b>Agenda solo</b>Reserva en el calendario del abogado indicado</div></div>
+  <div class="cap"><div class="cap-icon">🆘</div><div class="cap-text"><b>Escala urgencias</b>Notifica al abogado de turno de inmediato</div></div>
+</div>
+
+<button class="restart-btn" onclick="restart()">↺ Repetir escenario</button>
+
+<div class="footer">
+  <strong>Sin este sistema:</strong> el cliente escribe a las 11pm con un problema urgente, no recibe respuesta y busca otro despacho.<br><br>
+  <strong>Con este sistema:</strong> el bot recopila el caso, lo clasifica y agenda la consulta en segundos, a cualquier hora.
+</div>
+
+<script>
+const scenes = {
+  recopilar: {
+    messages: [
+      { type: 'out', text: 'Hola buenas noches, necesito un abogado. Tengo un problema con mi ex por la custodia de mis hijos 😔', time: '10:48' },
+      { type: 'sys', text: '🧠 Analizando intención: ASESORÍA LEGAL' },
+      { type: 'sys', text: '📋 Iniciando recopilación de información del caso...' },
+      { type: 'in', bot: true, text: 'Buenas noches 🙏 Estamos para ayudarte.\n\nPara orientarte con el abogado adecuado, necesito hacerte unas preguntas rápidas.\n\n¿Estás en proceso de divorcio actualmente o ya está resuelto ese tema?', time: '10:48' },
+      { type: 'out', text: 'Ya nos divorciamos hace un año pero el problema es que él no cumple con los días que acordamos para ver a los niños', time: '10:49' },
+      { type: 'sys', text: '📝 Caso: Incumplimiento de régimen de visitas · Post-divorcio' },
+      { type: 'in', bot: true, text: 'Entiendo, es una situación muy difícil 🙏\n\n¿El acuerdo de custodia y régimen de visitas está establecido mediante convenio firmado ante un juez o solo fue un acuerdo verbal entre ustedes?', time: '10:49' },
+      { type: 'out', text: 'Sí, está en el convenio del divorcio, firmado y todo', time: '10:50' },
+      { type: 'sys', text: '📝 Dato clave: Convenio judicial existente · Incumplimiento documentable' },
+      { type: 'in', bot: true, text: 'Perfecto, esa información es muy importante ✅\n\n¿Tienes evidencia del incumplimiento — mensajes, fechas, testigos?', time: '10:50' },
+      { type: 'out', text: 'Sí tengo varios mensajes de WhatsApp donde me dice que no va a recoger a los niños', time: '10:51' },
+      { type: 'sys', text: '✅ Caso documentado · Perfil completo · Listo para asignación' },
+      { type: 'in', bot: true, text: 'Tienes un caso sólido 💼\n\nTengo toda la información necesaria para que nuestra abogada de derecho familiar te dé asesoría completa.\n\n¿Te agendo una consulta para esta semana?', time: '10:51' },
+    ]
+  },
+  clasificar: {
+    messages: [
+      { type: 'out', text: 'Hola, mi jefe me corrió sin pagarme lo que me debe y no quiere darme mi liquidación', time: '8:15' },
+      { type: 'sys', text: '🧠 Analizando palabras clave: "corrió", "liquidación", "no pagar"' },
+      { type: 'sys', text: '⚖️ Clasificando área legal...' },
+      { type: 'sys', text: '✅ Área detectada: DERECHO LABORAL' },
+      { type: 'sys', text: '👤 Asignando a: Lic. Ramírez — Especialista en Laboral' },
+      { type: 'in', bot: true, text: 'Hola 👋 Lo que describes es un caso de *derecho laboral* — específicamente despido injustificado.\n\n<area:laboral>\n\nEsto tiene solución legal. Antes de agendarte con nuestra especialista, ¿cuánto tiempo llevas trabajando ahí y tenías contrato firmado?', time: '8:15' },
+      { type: 'out', text: 'Trabajé 4 años y sí tenía contrato, nunca me dieron nada por escrito del despido', time: '8:16' },
+      { type: 'sys', text: '📝 Antigüedad: 4 años · Contrato: sí · Despido verbal · Sin finiquito' },
+      { type: 'sys', text: '📊 Caso prioritario: tiene derecho a liquidación completa' },
+      { type: 'in', bot: true, text: 'Con 4 años de antigüedad y sin finiquito por escrito tienes derecho a *liquidación completa* 💼\n\nLa Lic. Ramírez puede atenderte esta semana. ¿Te agendo una consulta?', time: '8:17' },
+      { type: 'out', text: 'Sí por favor, lo antes posible', time: '8:17' },
+      { type: 'sys', text: '📅 Consultando agenda de Lic. Ramírez (Laboral)...' },
+    ]
+  },
+  agendar: {
+    messages: [
+      { type: 'out', text: 'Sí quiero agendar la consulta con el abogado', time: '4:22' },
+      { type: 'sys', text: '📅 Consultando calendario por área legal...' },
+      { type: 'sys', text: '🟢 Lic. Torres (Familiar): Mié 10am · Jue 3pm' },
+      { type: 'in', bot: true, text: 'Perfecto 😊 La Lic. Torres, nuestra especialista en derecho familiar, tiene disponibilidad en:\n\n📅 *Miércoles* a las *10:00am*\n📅 *Jueves* a las *3:00pm*\n\n¿Cuál te queda mejor?', time: '4:22' },
+      { type: 'out', text: 'El miércoles a las 10', time: '4:23' },
+      { type: 'in', bot: true, text: '¿Y tu nombre completo para registrar la consulta? 📋', time: '4:23' },
+      { type: 'out', text: 'Patricia Velázquez', time: '4:24' },
+      { type: 'sys', text: '📝 Creando cita en Google Calendar...' },
+      { type: 'sys', text: '✅ Consulta agendada: Patricia Velázquez · Mié 10am · Lic. Torres' },
+      { type: 'sys', text: '📲 Notificación enviada a Lic. Torres con resumen del caso' },
+      { type: 'sys', text: '⏰ Recordatorio programado: martes 9:00am' },
+      { type: 'in', bot: true, text: '¡Listo, Patricia! ✅\n\nTu consulta está confirmada:\n\n🗓 *Miércoles* a las *10:00am*\n⚖️ Derecho Familiar\n👩‍⚖️ Lic. Torres\n📍 Despacho Jurídico\n\nTe mandamos un recordatorio mañana con la dirección. ¡Hasta el miércoles! 🙏', time: '4:24' },
+    ]
+  },
+  recordatorio: {
+    messages: [
+      { type: 'sys', text: '⏰ Ejecutando recordatorio programado...' },
+      { type: 'sys', text: '📅 Consulta mañana: Patricia Velázquez · 10:00am · Lic. Torres' },
+      { type: 'in', bot: true, text: '¡Hola, Patricia! 👋\n\nTe recordamos que mañana tienes consulta en el Despacho Jurídico:\n\n🗓 *Mañana* a las *10:00am*\n👩‍⚖️ Lic. Torres — Derecho Familiar\n📍 Av. Venustiano Carranza 450, Piso 3\n\nPor favor lleva:\n📄 Identificación oficial\n📄 Copia del convenio de divorcio\n📄 Capturas de WhatsApp como evidencia\n\n¿Confirmas tu asistencia? Responde *SÍ* o *NO* 🙏', time: '9:00' },
+      { type: 'sys', text: '📲 Recordatorio enviado a Patricia Velázquez' },
+      { type: 'out', text: 'Sí ahí estaré, muchas gracias', time: '9:18' },
+      { type: 'sys', text: '🧠 Respuesta: CONFIRMACIÓN POSITIVA' },
+      { type: 'sys', text: '✅ Asistencia confirmada · Calendar actualizado' },
+      { type: 'in', bot: true, text: '¡Perfecto, Patricia! ✅\n\nTe esperamos mañana a las 10:00am. La Lic. Torres ya tiene el resumen de tu caso.\n\nCualquier duda antes de la consulta, aquí estamos 🙏', time: '9:18' },
+    ]
+  },
+  urgente: {
+    messages: [
+      { type: 'out', text: 'Hola necesito ayuda urgente, me detuvieron a mi hijo anoche y no sé dónde está ni qué hacer, estoy desesperada 😭', time: '7:03' },
+      { type: 'sys', text: '🧠 Analizando mensaje...' },
+      { type: 'sys', text: '🚨 CASO URGENTE detectado: DETENCIÓN — Derecho Penal' },
+      { type: 'sys', text: '🆘 Saltando flujo normal · Escalando a abogado penalista de turno' },
+      { type: 'in', bot: true, text: 'Entiendo que es una situación muy angustiante 🙏 Estamos aquí para ayudarte.\n\nEstoy alertando *de inmediato* a nuestro abogado penalista de turno. Este tipo de casos son atención prioritaria para nosotros.\n\n*¿En qué ciudad o municipio fue la detención?*', time: '7:03' },
+      { type: 'sys', text: '📨 ALERTA URGENTE enviada a Lic. Morales (Penal) — turno 24h' },
+      { type: 'sys', text: '📞 Llamada entrante preparada para el abogado' },
+      { type: 'out', text: 'Aquí en SLP, lo llevaron anoche como a las 11', time: '7:04' },
+      { type: 'sys', text: '📝 Caso: Detención nocturna · SLP · +8 horas detenido' },
+      { type: 'in', bot: true, text: 'Gracias. El Lic. Morales ya fue notificado y te llamará en los próximos *minutos* 📞\n\nMientras tanto: *no firmes ningún documento* y pide que le permitan hablar con un abogado. Eso es un derecho de tu hijo 🙏\n\n¿Tienes el nombre completo de él para que el licenciado vaya preparado?', time: '7:04' },
+      { type: 'sys', text: '✅ Caso activo · Abogado en camino al contacto' },
+    ]
+  }
+};
+
+let current = 'recopilar';
+let msgIndex = 0;
+let timer = null;
+
+function loadScene(name, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  current = name;
+  restart();
+}
+
+function restart() {
+  clearTimeout(timer);
+  msgIndex = 0;
+  const chat = document.getElementById('chat');
+  const typing = document.getElementById('typing');
+  Array.from(chat.children).forEach(el => {
+    if (!el.classList.contains('date-pill') && !el.classList.contains('typing')) el.remove();
+  });
+  typing.classList.remove('show');
+  document.getElementById('syslog').innerHTML = '';
+  showNext();
+}
+
+function showNext() {
+  const msgs = scenes[current].messages;
+  if (msgIndex >= msgs.length) return;
+
+  const m = msgs[msgIndex];
+  const chat = document.getElementById('chat');
+  const typing = document.getElementById('typing');
+
+  if (m.type === 'in') {
+    typing.classList.add('show');
+    chat.appendChild(typing);
+    chat.scrollTop = chat.scrollHeight;
+    timer = setTimeout(() => {
+      typing.classList.remove('show');
+      appendChat(m, chat);
+      msgIndex++;
+      timer = setTimeout(showNext, 900);
+    }, 1300);
+  } else if (m.type === 'out') {
+    timer = setTimeout(() => {
+      appendChat(m, chat);
+      msgIndex++;
+      timer = setTimeout(showNext, 600);
+    }, 400);
+  } else if (m.type === 'sys') {
+    timer = setTimeout(() => {
+      appendLog(m.text);
+      msgIndex++;
+      timer = setTimeout(showNext, 500);
+    }, 300);
+  }
+}
+
+function appendChat(m, chat) {
+  const el = document.createElement('div');
+  el.className = `msg ${m.type}`;
+
+  // Handle area tags
+  let text = m.text;
+  const areaMap = {
+    '<area:laboral>': '<span class="area-tag laboral">⚖️ Derecho Laboral</span>',
+    '<area:familiar>': '<span class="area-tag familiar">⚖️ Derecho Familiar</span>',
+    '<area:penal>': '<span class="area-tag penal">⚖️ Derecho Penal</span>',
+    '<area:civil>': '<span class="area-tag civil">⚖️ Derecho Civil</span>',
+  };
+  Object.keys(areaMap).forEach(k => { text = text.replace(k, areaMap[k]); });
+
+  let inner = '';
+  if (m.bot) inner += `<div class="bot-label">🤖 Asistente Jurídico</div>`;
+  inner += text.replace(/\n/g, '<br>').replace(/\*(.*?)\*/g, '<strong>$1</strong>');
+  inner += `<span class="time">${m.time}${m.type === 'out' ? ' ✓✓' : ''}</span>`;
+  el.innerHTML = inner;
+
+  chat.insertBefore(el, document.getElementById('typing'));
+  chat.scrollTop = chat.scrollHeight;
+  setTimeout(() => el.classList.add('visible'), 10);
+}
+
+function appendLog(text) {
+  const log = document.getElementById('syslog');
+  const el = document.createElement('div');
+  el.className = 'log-entry';
+  const isOk = text.startsWith('✅');
+  const isWarn = text.startsWith('⚠️');
+  const isUrgent = text.startsWith('🚨') || text.startsWith('🆘');
+  const isInfo = text.startsWith('📅') || text.startsWith('📝') || text.startsWith('📲') || text.startsWith('📨') || text.startsWith('⏰') || text.startsWith('📞');
+  const textClass = isOk ? 'ok' : isUrgent ? 'warn' : isInfo ? 'info' : '';
+  el.innerHTML = `<span class="log-text ${textClass}">${text}</span>`;
+  log.appendChild(el);
+  log.scrollTop = log.scrollHeight;
+  setTimeout(() => el.classList.add('visible'), 10);
+}
+
+showNext();
+</script>
+</body>
+</html>
